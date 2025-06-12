@@ -31,9 +31,9 @@ module RubyLLM
       }
     end
 
-    def ask(message = nil, with: nil, &)
+    def ask(message = nil, with: nil, &block)
       add_message role: :user, content: Content.new(message, with)
-      complete(&)
+      complete(&block)
     end
 
     alias say ask
@@ -88,11 +88,11 @@ module RubyLLM
       self
     end
 
-    def each(&)
-      messages.each(&)
+    def each(&block)
+      messages.each(&block)
     end
 
-    def complete(&)
+    def complete(&block)
       @on[:new_message]&.call
       response = @provider.complete(
         messages,
@@ -100,13 +100,13 @@ module RubyLLM
         temperature: @temperature,
         model: @model.id,
         connection: @connection,
-        &
+        &block
       )
       @on[:end_message]&.call(response)
 
       add_message response
       if response.tool_call?
-        handle_tool_calls(response, &)
+        handle_tool_calls(response, &block)
       else
         response
       end
@@ -124,7 +124,7 @@ module RubyLLM
 
     private
 
-    def handle_tool_calls(response, &)
+    def handle_tool_calls(response, &block)
       response.tool_calls.each_value do |tool_call|
         @on[:new_message]&.call
         result = execute_tool tool_call
@@ -132,7 +132,7 @@ module RubyLLM
         @on[:end_message]&.call(message)
       end
 
-      complete(&)
+      complete(&block)
     end
 
     def execute_tool(tool_call)

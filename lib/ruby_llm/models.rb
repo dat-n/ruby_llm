@@ -160,8 +160,8 @@ module RubyLLM
     end
 
     # Allow enumeration over all models
-    def each(&)
-      all.each(&)
+    def each(&block)
+      all.each(&block)
     end
 
     # Find a specific model by ID

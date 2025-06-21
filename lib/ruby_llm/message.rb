@@ -12,6 +12,7 @@ module RubyLLM
     def initialize(options = {})
       @role = options.fetch(:role).to_sym
       @content = normalize_content(options.fetch(:content))
+      @reasoning_content = normalize_content(options.fetch(:reasoning_content) { nil })
       @tool_calls = options[:tool_calls]
       @input_tokens = options[:input_tokens]
       @output_tokens = options[:output_tokens]
@@ -26,6 +27,14 @@ module RubyLLM
         @content.text
       else
         @content
+      end
+    end
+
+    def reasoning_content
+      if @reasoning_content.is_a?(Content) && @reasoning_content.text && @reasoning_content.attachments.empty?
+        @reasoning_content.text
+      else
+        @reasoning_content
       end
     end
 
